@@ -1,0 +1,50 @@
+# Rider-specific files
+.idea/
+*.iml
+
+# Compiled Object Code
+*.obj
+*.pdb
+*.dll
+*.exe
+*.config
+
+# Visual Studio files (if any)
+.vs/
+*.suo
+*.user
+*.opensdf
+*.vssscc
+*.csproj.user
+*.sln.docstates
+*.cachefile
+*.VC.db
+*.VC.VC.opendb
+*.VisualState.xml
+*.dia
+*.vcdb
+
+# NuGet Packages
+packages/
+[Bb]in/
+[Oo]bj/
+
+# Temporary files
+_ReSharper*/
+*.log
+*.tmp
+*.shfbproj.user
+*.DS_Store
+
+# Web deploy files
+*.swp
+*.pid
+*.orig
+*.bak
+/temp/
+/log/
+/App_Data/
+/bin/roslyn/
+
+# Publish folder
+/Publish/
