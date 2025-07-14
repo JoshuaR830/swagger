@@ -2,25 +2,28 @@ using FastEndpoints;
 
 namespace swagger.Endpoints.WeatherForecastPost;
 
-public record WeatherForecastResponse(DateOnly Date, int TemperatureC, string? Summary);
-public record WeatherForecastRequest(DateOnly Date, int TemperatureC, string? Summary);
-public class Endpoint : Endpoint<WeatherForecastRequest, WeatherForecastResponse>
+
+public record WeatherForecastPostResponse(DateOnly Date, int TemperatureC, string? Summary);
+public record WeatherForecastPostRequest(DateOnly Date, int TemperatureC, string? Summary);
+
+// [SwaggerResponseExample(200, typeof(SunnyExample))]
+// [SwaggerResponseExample(200, typeof(Examples))]
+public class Endpoint : Endpoint<WeatherForecastPostRequest, WeatherForecastPostResponse>
 {
     public override void Configure()
     {
         AllowAnonymous();
         Post("/weatherforecast");
-        
     }
 
-    public override async Task HandleAsync(WeatherForecastRequest request, CancellationToken ct)
+    public override async Task HandleAsync(WeatherForecastPostRequest postRequest, CancellationToken ct)
     {
         var forecast =
-            new WeatherForecastResponse
+            new WeatherForecastPostResponse
             (
-                request.Date,
-                request.TemperatureC,
-                request.Summary
+                postRequest.Date,
+                postRequest.TemperatureC,
+                postRequest.Summary
             );
         
         await SendAsync(forecast, cancellation: ct);
