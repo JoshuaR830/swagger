@@ -2,7 +2,7 @@ using FastEndpoints;
 
 namespace swagger.Endpoints.WeatherForecastGet;
 
-public class Summary : Summary<Endpoint>
+public class Summary : MultipleSummary<Endpoint>
 {
     public Summary()
     {
@@ -12,10 +12,18 @@ public class Summary : Summary<Endpoint>
         
         RequestExamples.Add(new RequestExample(new DateOnly(2020, 1, 1)));
         
-        ResponseExamples[200] = new List<WeatherForecastResponse>()
+        MultipleResponseExamples[200] = new List<OpenApiExampleInfo>()
         {
-            new WeatherForecastResponse(new DateOnly(2020, 1, 1), 10, "Sunny"),
-            new WeatherForecastResponse(new DateOnly(2020, 1, 1), 1, "Rainy")
+            new OpenApiExampleInfo
+            {
+                Name = "Sunny Example",
+                Value = new WeatherForecastResponse(new DateOnly(2020, 1, 1), 10, "Sunny")
+            },
+            new OpenApiExampleInfo
+            {
+                Name = "Rainy Example",
+                Value = new WeatherForecastResponse(new DateOnly(2020, 1, 1), 1, "Rainy")
+            }
         };
     }
 }
