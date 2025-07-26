@@ -9,6 +9,7 @@ public class WeatherForecastRequest
 {
     [FromQuery]
     public string Date { get; set; }
+    public string Time { get; set; }
 }
 //[property:QueryParam]DateOnly Date);
 public class Endpoint : Endpoint<WeatherForecastRequest, WeatherForecastResponse>

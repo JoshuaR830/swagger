@@ -10,16 +10,31 @@ public class FromQueryOperationFilter : IOperationFilter
     {
         // Check if the endpoint uses a request DTO (FastEndpoints typically does)
         var requestType = context.MethodInfo.GetParameters()
-            .FirstOrDefault(p => p.ParameterType.BaseType != null && p.ParameterType.BaseType.Name == "Endpoint" || p.ParameterType.Name.Contains("Request"))? // Heuristic for FastEndpoints DTO
+            .FirstOrDefault(p => p.ParameterType.BaseType != null)?
             .ParameterType;
 
-        if (requestType == null) return;
+        var isGet = context.ApiDescription.HttpMethod?.ToLowerInvariant() == "get";
 
+        if (requestType == null || !isGet)
+            return;
+
+        var parameters = new List<OpenApiParameter>();
+
+        var properties = operation.RequestBody.Content.Select(c => c.Value.Schema).Where(s => s.Properties != null).Select(x => x.Properties);
+        foreach (var property in properties)
+        {
+            parameters.AddRange(property.Select(x => new OpenApiParameter
+            {
+                 Name = x.Key,
+                 Schema = x.Value
+            }));
+        }
+        
         // Iterate through properties of the request DTO
         foreach (var property in requestType.GetProperties(BindingFlags.Public | BindingFlags.Instance))
         {
             // Check if the property has the [FromQuery] attribute
-            var fromQueryAttribute = property.GetCustomAttribute<FromQueryAttribute>();
+            // var fromQueryAttribute = property.GetCustomAttribute<FromQueryAttribute>();
 
             // For GET/HEAD methods, FastEndpoints defaults to FromQuery if not specified,
             // but [FromQuery] is more explicit.
@@ -27,25 +42,38 @@ public class FromQueryOperationFilter : IOperationFilter
             //                     (context.ApiDescription.HttpMethod == HttpMethod.Get.ToString()?.ToUpperInvariant() &&
             //                      !property.GetCustomAttributes().Any(attr => attr is FromRouteAttribute || attr is FromBodyAttribute));
 
-            if (fromQueryAttribute != null)
-            {
+            // if (fromQueryAttribute != null)
+            // {
                 // Remove the property from the requestBody schema if it exists there
                 // This ensures it doesn't appear as a body parameter
-                if (operation.RequestBody != null && operation.RequestBody.Content.Any())
+                
+                
+            // There should never be a request body for a get request
+            // parameters.Add(
+            //
+            //     new OpenApiParameter
+            //     {
+            //         Name = property.Name
+            //     }
+            // );
+
+            operation.RequestBody = null;
+
+            if (operation.RequestBody != null && operation.RequestBody.Content.Any())
+            {
+                foreach (var content in operation.RequestBody.Content.Values)
                 {
-                    foreach (var content in operation.RequestBody.Content.Values)
+                    if (content.Schema != null && content.Schema.Properties != null)
                     {
-                        if (content.Schema != null && content.Schema.Properties != null)
-                        {
-                            content.Schema.Properties.Remove(property.Name.ToLowerCamelCase()); // FastEndpoints default JSON casing
-                        }
-                    }
-                    // If no more properties are in the body, remove the requestBody entirely
-                    if (operation.RequestBody.Content.All(c => c.Value.Schema?.Properties?.Any() != true))
-                    {
-                        operation.RequestBody = null;
+                        content.Schema.Properties.Remove(property.Name.ToLowerCamelCase()); // FastEndpoints default JSON casing
                     }
                 }
+                // If no more properties are in the body, remove the requestBody entirely
+                if (operation.RequestBody.Content.All(c => c.Value.Schema?.Properties?.Any() != true))
+                {
+                    operation.RequestBody = null;
+                }
+                // }
 
                 // Add or update the parameter in the operation's parameters list
                 var existingParam = operation.Parameters.FirstOrDefault(p => p.Name.Equals(property.Name, StringComparison.OrdinalIgnoreCase));
@@ -74,6 +102,8 @@ public class FromQueryOperationFilter : IOperationFilter
                     });
                 }
             }
+            
+            operation.Parameters = parameters;
         }
     }
 
