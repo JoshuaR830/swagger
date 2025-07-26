@@ -10,7 +10,6 @@ public class Endpoint : Endpoint<WeatherForecastRequest, WeatherForecastResponse
     {
         AllowAnonymous();
         Post("/weatherforecast");
-        
     }
 
     public override async Task HandleAsync(WeatherForecastRequest request, CancellationToken ct)
